@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HaskellJunkie — ЕГН</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset & Root ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0c0c10;
+  --bg2:       #13131a;
+  --bg3:       #1a1a24;
+  --line:      #25253a;
+  --line2:     #32324a;
+  --purple:    #7c5cfc;
+  --purple2:   #a07aff;
+  --cyan:      #3dffd0;
+  --pink:      #ff5ca8;
+  --yellow:    #f5d547;
+  --text:      #e8e8f8;
+  --muted:     #686890;
+  --muted2:    #9090b8;
+  --ok:        #3dffd0;
+  --err:       #ff4f6a;
+  --mono:      'Space Mono', monospace;
+  --sans:      'Syne', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── Grid bg ───────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(124,92,252,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,92,252,.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ─── Glow orbs ─────────────────────────────────────── */
+.orb {
+  position: fixed; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+  filter: blur(80px);
+  animation: orbFloat 12s ease-in-out infinite;
+}
+.orb1 { width:500px; height:500px; top:-150px; left:-100px; background:rgba(124,92,252,.15); animation-delay:0s; }
+.orb2 { width:400px; height:400px; bottom:-100px; right:-80px; background:rgba(61,255,208,.10); animation-delay:4s; }
+.orb3 { width:300px; height:300px; top:40%; left:50%; background:rgba(255,92,168,.08); animation-delay:8s; }
+
+@keyframes orbFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(20px,-30px) scale(1.05); }
+  66%      { transform: translate(-15px,20px) scale(.97); }
+}
+
+/* ─── Layout ─────────────────────────────────────────── */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+}
+
+/* ─── Header / Logo ─────────────────────────────────── */
+header {
+  padding: 36px 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 52px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple2) 100%);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 24px rgba(124,92,252,.4);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-icon::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%);
+}
+
+.logo-icon svg { width: 26px; height: 26px; }
+
+.logo-text {
+  display: flex; flex-direction: column; gap: 1px;
+}
+
+.logo-name {
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.logo-name span { color: var(--purple2); }
+
+.logo-sub {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.header-badge {
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--muted);
+  border: 1px solid var(--line2);
+  border-radius: 20px;
+  padding: 5px 14px;
+  text-transform: uppercase;
+}
+
+.header-badge span { color: var(--purple2); }
+
+/* ─── Tabs ───────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 36px;
+}
+
+.tab-btn {
+  background: none; border: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 12px 24px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .2s, border-color .2s;
+  position: relative;
+}
+
+.tab-btn::before {
+  content: attr(data-index);
+  position: absolute;
+  left: 10px; top: 11px;
+  font-size: 9px;
+  color: var(--muted);
+  opacity: .5;
+}
+
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--purple2); border-bottom-color: var(--purple2); }
+
+/* ─── Panels ─────────────────────────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ─── Cards ──────────────────────────────────────────── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: var(--purple);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── Inputs ─────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 7px; }
+
+label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+input, select {
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  width: 100%;
+  appearance: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124,92,252,.12);
+}
+
+.egn-input {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-align: center;
+  color: var(--cyan);
+  padding: 16px 20px;
+}
+
+.egn-input::placeholder { color: var(--line2); }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23686890' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+select option { background: var(--bg2); }
+
+/* ─── Grid layouts ───────────────────────────────────── */
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.row-gap { display: flex; flex-direction: column; gap: 16px; }
+
+/* ─── Button ─────────────────────────────────────────── */
+.btn {
+  background: var(--purple);
+  border: none;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .2s;
+  display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap;
+}
+
+.btn:hover { background: var(--purple2); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,92,252,.35); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+
+.btn-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+/* ─── Result box ─────────────────────────────────────── */
+.result-wrap { margin-top: 4px; }
+
+.result-box {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  animation: fadeUp .3s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-head {
+  padding: 12px 22px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+}
+
+.result-box.ok .result-head { background: rgba(61,255,208,.08); color: var(--ok); border-bottom: 1px solid rgba(61,255,208,.12); }
+.result-box.fail .result-head { background: rgba(255,79,106,.08); color: var(--err); border-bottom: 1px solid rgba(255,79,106,.12); }
+
+.result-body {
+  background: var(--bg2);
+  padding: 24px 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 32px;
+}
+
+.info-row { display: flex; flex-direction: column; gap: 4px; }
+.info-lbl { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.info-val { font-size: 15px; color: var(--text); }
+.info-val.accent { font-family: var(--sans); font-size: 28px; font-weight: 800; color: var(--cyan); letter-spacing: .05em; line-height: 1; }
+.info-val.err { color: var(--err); font-style: italic; }
+
+/* ─── Sex badges ─────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
+}
+.badge-m { background: rgba(100,160,255,.12); color: #6aa0ff; border: 1px solid rgba(100,160,255,.2); }
+.badge-f { background: rgba(255,92,168,.12); color: var(--pink); border: 1px solid rgba(255,92,168,.2); }
+
+/* ─── Generator results ──────────────────────────────── */
+.gen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.gen-card {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all .2s;
+  animation: fadeUp .3s ease both;
+}
+
+.gen-card:hover {
+  border-color: var(--purple);
+  background: var(--bg3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124,92,252,.15);
+}
+
+.gen-card:nth-child(1) { animation-delay: .05s; }
+.gen-card:nth-child(2) { animation-delay: .10s; }
+.gen-card:nth-child(3) { animation-delay: .15s; }
+.gen-card:nth-child(4) { animation-delay: .20s; }
+.gen-card:nth-child(5) { animation-delay: .25s; }
+
+.gen-egn {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--purple2);
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.gen-egn .dot { width:6px; height:6px; background: var(--purple); border-radius:50%; opacity:.6; }
+
+.gen-meta { font-size: 12px; color: var(--muted2); line-height: 1.7; }
+.gen-meta strong { color: var(--muted2); font-weight: 400; }
+.copy-hint { font-size: 10px; color: var(--muted); margin-top: 8px; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ─── Spinner ────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid var(--line2);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-row {
+  display: flex; align-items: center; gap: 14px;
+  color: var(--muted); font-size: 13px;
+  padding: 12px 0;
+}
+
+/* ─── Toast ──────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg3);
+  border: 1px solid var(--purple);
+  color: var(--text);
+  font-size: 13px;
+  padding: 12px 24px;
+  border-radius: 40px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  z-index: 100;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+  opacity: 0;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ─── Stat row in generator ──────────────────────────── */
+.stat-row {
+  display: flex; gap: 20px;
+  padding: 16px 22px;
+  background: var(--bg3);
+  border-radius: 10px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-val { font-family: var(--sans); font-size: 22px; font-weight: 700; color: var(--purple2); }
+.stat-lbl { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* ─── About panel ────────────────────────────────────── */
+.about-section { margin-bottom: 28px; }
+.about-section h3 {
+  font-family: var(--sans); font-size: 16px; font-weight: 700;
+  color: var(--purple2); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.about-section p { color: var(--muted2); line-height: 1.8; font-size: 13px; }
+.code-block {
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: 10px; padding: 16px 20px;
+  font-size: 12px; color: var(--cyan);
+  line-height: 1.8; margin-top: 12px;
+  overflow-x: auto;
+}
+.code-block .kw { color: var(--purple2); }
+.code-block .cm { color: var(--muted); }
+
+/* ─── History panel ──────────────────────────────────── */
+.hist-item {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.hist-item:hover { border-color: var(--purple); background: var(--bg3); }
+.hist-egn { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--purple2); letter-spacing: .06em; flex-shrink: 0; }
+.hist-info { font-size: 12px; color: var(--muted2); }
+.hist-time { font-size: 10px; color: var(--muted); margin-left: auto; flex-shrink: 0; }
+.hist-badge-ok  { width: 6px; height: 6px; background: var(--ok);  border-radius: 50%; flex-shrink: 0; }
+.hist-badge-err { width: 6px; height: 6px; background: var(--err); border-radius: 50%; flex-shrink: 0; }
+.empty-state { text-align: center; padding: 48px 0; color: var(--muted); font-size: 13px; }
+.empty-state p { margin-top: 8px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ─── Responsive ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .result-body { grid-template-columns: 1fr; gap: 14px; }
+  .card { padding: 20px; }
+  .egn-input { font-size: 22px; letter-spacing: .1em; }
+  .info-val.accent { font-size: 22px; }
+  .tab-btn { padding: 12px 14px; font-size: 11px; }
+  .tab-btn::before { display: none; }
+}
+
+@media (max-width: 420px) {
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  header { padding: 24px 0 32px; }
+  .logo-name { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="wrap">
+
+  <!-- ─── HEADER ─────────────────────────────────── -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <!-- Lambda λ as SVG -->
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="3" y="21" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="white">λ</text>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">Haskell<span>Junkie</span></span>
+        <span class="logo-sub">ЕГН Инструмент · v1.0</span>
+      </div>
+    </a>
+    <div class="header-badge">Powered by <span>Haskell Logic</span></div>
+  </header>
+
+  <!-- ─── TABS ───────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab-btn active" data-index="01" onclick="switchTab('check',this)">Проверка</button>
+    <button class="tab-btn" data-index="02" onclick="switchTab('gen',this)">Генератор</button>
+    <button class="tab-btn" data-index="03" onclick="switchTab('history',this)">История</button>
+    <button class="tab-btn" data-index="04" onclick="switchTab('about',this)">За ЕГН</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 1 — CHECK
+  ════════════════════════════════════════════════ -->
+  <div id="tab-check" class="panel active">
+    <div class="card">
+      <div class="card-title">Въведи ЕГН за проверка</div>
+      <div class="field">
+        <input
+          id="egnInput"
+          class="egn-input"
+          type="text"
+          maxlength="10"
+          placeholder="0000000000"
+          inputmode="numeric"
+          autocomplete="off"
+          oninput="onEgnInput(this.value)"
+          onkeydown="if(event.key==='Enter') checkEgn()"
+        >
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="checkEgn()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="white" stroke-width="1.5"/><path d="M10 10l2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Провери
+        </button>
+        <button class="btn" style="background:var(--bg3);color:var(--muted2);box-shadow:none;" onclick="clearCheck()">Изчисти</button>
+      </div>
+    </div>
+    <div class="result-wrap" id="check-result"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 2 — GENERATE
+  ════════════════════════════════════════════════ -->
+  <div id="tab-gen" class="panel">
+    <div class="card">
+      <div class="card-title">Параметри за генериране</div>
+      <div class="row-gap">
+        <div class="grid-3">
+          <div class="field"><label>Ден <small style="color:var(--muted)">(0=случаен)</small></label><input id="gday"  type="number" min="0" max="31"   value="0"></div>
+          <div class="field"><label>Месец <small style="color:var(--muted)">(0=случаен)</small></label><input id="gmon"  type="number" min="0" max="12"   value="0"></div>
+          <div class="field"><label>Година <small style="color:var(--muted)">(0=случаен)</small></label><input id="gyear" type="number" min="0" max="2099" value="0"></div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Пол</label>
+            <select id="gsex">
+              <option value="0">— Случаен —</option>
+              <option value="1">Мъж</option>
+              <option value="2">Жена</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Регион</label>
+            <select id="gregion">
+              <option value="0">— Случаен —</option>
+              <!-- filled by JS -->
+            </select>
+          </div>
+          <div class="field">
+            <label>Брой (1–20)</label>
+            <input id="gnum" type="number" min="1" max="20" value="6">
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="generate()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v2M7 11v2M1 7h2M11 7h2M3.05 3.05l1.41 1.41M9.54 9.54l1.41 1.41M9.54 4.46L8.13 5.87M4.46 9.54 3.05 10.95" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Генерирай
+        </button>
+      </div>
+    </div>
+    <div id="gen-result"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 3 — HISTORY
+  ════════════════════════════════════════════════ -->
+  <div id="tab-history" class="panel">
+    <div class="card">
+      <div class="card-title">Скорошни проверки</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 4 — ABOUT
+  ════════════════════════════════════════════════ -->
+  <div id="tab-about" class="panel">
+    <div class="card">
+
+      <div class="about-section">
+        <h3>📋 Структура на ЕГН</h3>
+        <p>Единният граждански номер (ЕГН) е 10-цифрен идентификатор, въведен в България. Всяка цифра носи конкретна информация за притежателя.</p>
+        <div class="code-block">
+<span class="cm">-- Структура: ГГММДДРРРК</span>
+<span class="kw">ГГ</span>  → последните 2 цифри на годината на раждане
+<span class="kw">ММ</span>  → месец (1800→+20, 2000→+40)
+<span class="kw">ДД</span>  → ден на раждане
+<span class="kw">РРР</span> → регион + пол (четно=мъж, нечетно=жена)
+<span class="kw">К</span>   → контролна цифра
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>🔢 Контролна цифра</h3>
+        <p>Контролната цифра се изчислява с тегла и модулна аритметика, което прави случайното генериране на валиден ЕГН много малко вероятно.</p>
+        <div class="code-block">
+<span class="cm">-- Тегла по позиция (Haskell)</span>
+<span class="kw">weights</span> = [2, 4, 8, 5, 10, 9, 7, 3, 6]
+
+<span class="kw">checksum</span> egn =
+  <span class="kw">let</span> s = sum (zipWith (*) digits weights)
+      r = s `mod` 11
+  <span class="kw">in</span>  if r == 10 then 0 else r
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>🗺 Региони</h3>
+        <p>Позиции 7–9 кодират региона на раждане. На всеки регион са отредени определен брой номера на ден — по статистически принцип спрямо раждаемостта.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>⚠️ Важна бележка</h3>
+        <p>Проверката и генерирането са само за образователни цели. Инструментът проверява математическата валидност на ЕГН — не потвърждава самоличност на лице.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT — EGN Logic (port of Haskell implementation)
+════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ── EGN Engine ──────────────────────────────────────────────
+const WEIGHTS = [2, 4, 8, 5, 10, 9, 7, 3, 6];
+
+const REGIONS = [
+  ["Благоевград",        43],  ["Бургас",             93],
+  ["Варна",             139],  ["Велико Търново",     169],
+  ["Видин",             183],  ["Враца",              217],
+  ["Габрово",           233],  ["Кърджали",           281],
+  ["Кюстендил",         301],  ["Ловеч",              319],
+  ["Монтана",           341],  ["Пазарджик",          377],
+  ["Перник",            395],  ["Плевен",             435],
+  ["Пловдив",           501],  ["Разград",            527],
+  ["Русе",              555],  ["Силистра",           575],
+  ["Сливен",            601],  ["Смолян",             623],
+  ["София - град",      721],  ["София - окръг",      751],
+  ["Стара Загора",      789],  ["Добрич (Толбухин)",  821],
+  ["Търговище",         843],  ["Хасково",            871],
+  ["Шумен",             903],  ["Ямбол",              925],
+  ["Друг/Неизвестен",   999],
+];
+
+const MONTHS_BG = ["януари","февруари","март","април","май","юни",
+                   "юли","август","септември","октомври","ноември","декември"];
+
+function isLeap(y) { return (y%4===0 && y%100!==0) || y%400===0; }
+
+function daysInMonth(m, y) {
+  if ([1,3,5,7,8,10,12].includes(m)) return 31;
+  if ([4,6,9,11].includes(m)) return 30;
+  if (m === 2) return isLeap(y) ? 29 : 28;
+  return 0;
+}
+
+function checkDate(m, d, y) {
+  return m >= 1 && m <= 12 && d >= 1 && d <= daysInMonth(m, y);
+}
+
+function egnValid(egn) {
+  if (egn.length !== 10 || !/^\d+$/.test(egn)) return false;
+  const d = egn.split('').map(Number);
+  const yr = d[0]*10+d[1], mon = d[2]*10+d[3], dy = d[4]*10+d[5];
+  let dateOk;
+  if      (mon > 40) dateOk = checkDate(mon-40, dy, yr+2000);
+  else if (mon > 20) dateOk = checkDate(mon-20, dy, yr+1800);
+  else               dateOk = checkDate(mon,    dy, yr+1900);
+  if (!dateOk) return false;
+  const s  = d.slice(0,9).reduce((acc,v,i) => acc + v*WEIGHTS[i], 0);
+  const ck = s % 11 === 10 ? 0 : s % 11;
+  return ck === d[9];
+}
+
+function findRegion(code) {
+  let first = 0;
+  for (const [name, last] of REGIONS) {
+    if (code >= first && code <= last) return { name, first, last };
+    first = last + 1;
+  }
+  return { name: "Непознат", first: 0, last: 999 };
+}
+
+function egnParse(egn) {
+  if (!egnValid(egn)) return null;
+  const d  = egn.split('').map(Number);
+  const yr  = d[0]*10+d[1];
+  const mon = d[2]*10+d[3];
+  const dy  = d[4]*10+d[5];
+  const rc  = d[6]*100 + d[7]*10 + d[8];
+
+  let year, month;
+  if      (mon > 40) { year = yr+2000; month = mon-40; }
+  else if (mon > 20) { year = yr+1800; month = mon-20; }
+  else               { year = yr+1900; month = mon; }
+
+  const sex = d[8] % 2;  // 0=мъж 1=жена
+  const { name: regionText, first: firstRegion } = findRegion(rc);
+  const adjCode   = rc % 2 !== 0 ? rc - 1 : rc;
+  const birthNum  = (adjCode - firstRegion) / 2 + 1;
+
+  return {
+    year, month, day: dy,
+    birthday: `${dy} ${MONTHS_BG[month-1]} ${year} г.`,
+    regionNum: rc, regionText,
+    sex, sexText: sex === 0 ? "мъж" : "жена",
+    birthNumber: birthNum,
+  };
+}
+
+function pad2(n) { return String(n).padStart(2,'0'); }
+function pad3(n) { return String(n).padStart(3,'0'); }
+
+function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+function regionFirstNum(lastN) {
+  let first = 0;
+  for (const [, last] of REGIONS) {
+    if (last === lastN) return first;
+    first = last + 1;
+  }
+  return 0;
+}
+
+function egnGenerate(day=0, mon=0, year=0, sex=0, regionLast=null) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const gday  = day  > 0 ? Math.min(day,31)   : randInt(1,31);
+    const gmon  = mon  > 0 ? Math.min(mon,12)   : randInt(1,12);
+    const gyear = year > 0 ? year                : randInt(1900,2010);
+    if (!checkDate(gmon, gday, gyear)) continue;
+
+    const cent   = gyear - (gyear % 100);
+    const adjMon = cent===1800 ? gmon+20 : cent===2000 ? gmon+40 : gmon;
+    const yr2    = gyear - cent;
+
+    let gregion;
+    if (regionLast === null) {
+      gregion = randInt(0, 999);
+    } else {
+      const first = regionFirstNum(regionLast);
+      gregion = randInt(first, regionLast);
+    }
+    if (sex === 1 && gregion % 2 === 0) gregion++;
+    if (sex === 2 && gregion % 2 !== 0) gregion--;
+    if (gregion < 0 || gregion > 999) continue;
+
+    const base = pad2(yr2) + pad2(adjMon) + pad2(gday) + pad3(gregion);
+    const s    = base.split('').slice(0,9).reduce((acc,v,i) => acc + Number(v)*WEIGHTS[i], 0);
+    const ck   = s % 11 === 10 ? 0 : s % 11;
+    return base + ck;
+  }
+  return null;
+}
+
+// ── UI State ────────────────────────────────────────────────
+let history = JSON.parse(localStorage.getItem('egnHistory') || '[]');
+
+function saveHistory(egn, valid, info) {
+  history.unshift({ egn, valid, info, time: new Date().toLocaleTimeString('bg-BG') });
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('egnHistory', JSON.stringify(history));
+}
+
+// ── Tab switching ───────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+// ── Check ───────────────────────────────────────────────────
+function onEgnInput(val) {
+  const digits = val.replace(/\D/g, '');
+  document.getElementById('egnInput').value = digits;
+  if (digits.length === 10) checkEgn();
+  if (digits.length < 10)   document.getElementById('check-result').innerHTML = '';
+}
+
+function clearCheck() {
+  document.getElementById('egnInput').value = '';
+  document.getElementById('check-result').innerHTML = '';
+}
+
+function checkEgn() {
+  const egn = document.getElementById('egnInput').value.trim();
+  if (!egn) return;
+  const el = document.getElementById('check-result');
+
+  if (!egnValid(egn)) {
+    el.innerHTML = `
+      <div class="result-box fail">
+        <div class="result-head">✗ Невалиден ЕГН</div>
+        <div class="result-body" style="grid-template-columns:1fr">
+          <div class="info-row">
+            <span class="info-lbl">Въведено</span>
+            <span class="info-val accent" style="color:var(--err)">${esc(egn)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-lbl">Проблем</span>
+            <span class="info-val err">Грешна контролна цифра или невалидна дата</span>
+          </div>
+        </div>
+      </div>`;
+    saveHistory(egn, false, 'Невалиден');
+    return;
+  }
+
+  const d = egnParse(egn);
+  const sexBadge = d.sex === 0
+    ? `<span class="badge badge-m">♂ Мъж</span>`
+    : `<span class="badge badge-f">♀ Жена</span>`;
+
+  const birthDesc = d.birthNumber === 1
+    ? `1-во ${d.sex===0?'момче':'момиче'} за деня в региона`
+    : `${d.birthNumber}-то ${d.sex===0?'момче':'момиче'} за деня в региона`;
+
+  el.innerHTML = `
+    <div class="result-box ok">
+      <div class="result-head">✓ Валиден ЕГН</div>
+      <div class="result-body">
+        <div class="info-row" style="grid-column:1/-1">
+          <span class="info-lbl">Единен граждански номер</span>
+          <span class="info-val accent">${esc(egn)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-lbl">Дата на раждане</span>
+          <span class="info-val">${esc(d.birthday)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-lbl">Пол</span>
+          <span class="info-val">${sexBadge}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-lbl">Регион</span>
+          <span class="info-val">${esc(d.regionText)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-lbl">Поредност</span>
+          <span class="info-val">${esc(birthDesc)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-lbl">Код на регион</span>
+          <span class="info-val" style="color:var(--muted2)">${d.regionNum}</span>
+        </div>
+      </div>
+    </div>`;
+  saveHistory(egn, true, `${d.birthday} · ${d.regionText} · ${d.sexText}`);
+}
+
+// ── Generate ────────────────────────────────────────────────
+function generate() {
+  const day    = parseInt(document.getElementById('gday').value)  || 0;
+  const mon    = parseInt(document.getElementById('gmon').value)  || 0;
+  const year   = parseInt(document.getElementById('gyear').value) || 0;
+  const sex    = parseInt(document.getElementById('gsex').value)  || 0;
+  const region = parseInt(document.getElementById('gregion').value) || 0;
+  const n      = Math.min(20, Math.max(1, parseInt(document.getElementById('gnum').value) || 6));
+  const regionLast = region === 0 ? null : region;
+
+  const el = document.getElementById('gen-result');
+  el.innerHTML = `<div style="padding:16px 0"><div class="loading-row"><span class="spinner"></span> Генерирам ${n} ЕГН…</div></div>`;
+
+  // slight delay so spinner renders
+  setTimeout(() => {
+    const results = [];
+    for (let i = 0; i < n; i++) {
+      const egn = egnGenerate(day, mon, year, sex, regionLast);
+      if (egn) results.push(egn);
+    }
+
+    if (!results.length) {
+      el.innerHTML = `<div class="card"><span style="color:var(--err)">Неуспешно генериране — провери параметрите.</span></div>`;
+      return;
+    }
+
+    const mCount = results.filter(e => egnParse(e)?.sex === 0).length;
+    const fCount = results.length - mCount;
+
+    const statsHtml = `
+      <div class="stat-row">
+        <div class="stat"><span class="stat-val">${results.length}</span><span class="stat-lbl">Генерирани</span></div>
+        <div class="stat"><span class="stat-val" style="color:#6aa0ff">${mCount}</span><span class="stat-lbl">Мъже</span></div>
+        <div class="stat"><span class="stat-val" style="color:var(--pink)">${fCount}</span><span class="stat-lbl">Жени</span></div>
+      </div>`;
+
+    const cards = results.map(egn => {
+      const d = egnParse(egn);
+      if (!d) return '';
+      const badge = d.sex===0
+        ? `<span class="badge badge-m" style="font-size:10px">М</span>`
+        : `<span class="badge badge-f" style="font-size:10px">Ж</span>`;
+      return `
+        <div class="gen-card" onclick="useEgn('${esc(egn)}')">
+          <div class="gen-egn"><span class="dot"></span>${esc(egn)} ${badge}</div>
+          <div class="gen-meta">
+            ${esc(d.birthday)}<br>
+            <strong>${esc(d.regionText)}</strong>
+          </div>
+          <div class="copy-hint">↵ кликни за проверка</div>
+        </div>`;
+    }).join('');
+
+    el.innerHTML = statsHtml + `<div class="gen-grid">${cards}</div>`;
+  }, 80);
+}
+
+function useEgn(egn) {
+  document.getElementById('egnInput').value = egn;
+  switchTab('check', document.querySelector('.tab-btn'));
+  checkEgn();
+  showToast(`ЕГН ${egn} копиран за проверка`);
+}
+
+// ── History ─────────────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!history.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div style="font-size:32px">📋</div>
+      <p>Все още няма проверки</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = history.map(h => `
+    <div class="hist-item" onclick="loadHistEgn('${esc(h.egn)}')">
+      <div class="${h.valid ? 'hist-badge-ok' : 'hist-badge-err'}"></div>
+      <div class="hist-egn">${esc(h.egn)}</div>
+      <div class="hist-info">${esc(h.info)}</div>
+      <div class="hist-time">${esc(h.time)}</div>
+    </div>`).join('');
+}
+
+function loadHistEgn(egn) {
+  document.getElementById('egnInput').value = egn;
+  switchTab('check', document.querySelector('.tab-btn'));
+  checkEgn();
+}
+
+// ── Toast ────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Utils ────────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Populate region select ───────────────────────────────────
+(function() {
+  const sel = document.getElementById('gregion');
+  REGIONS.forEach(([name, lastN]) => {
+    const opt = document.createElement('option');
+    opt.value = lastN;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+})();
+
+// ── Keyboard shortcut: Enter on EGN input ───────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('egnInput').focus();
+});
+</script>
+</body>
+</html>
